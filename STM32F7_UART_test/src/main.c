@@ -18,6 +18,8 @@
 #define BUFFER_SIZE	64
 #define TIMEOUT		10000
 
+static UART_HandleTypeDef hUART;
+
 /****************************************************/
 /***               HAL_UART_MspInit               ***/
 /****************************************************/
@@ -50,35 +52,35 @@ void HAL_UART_MspInit(UART_HandleTypeDef *hUART) {
 /*****************/
 /*** UART_init ***/
 /*****************/
-static void UART_init(UART_HandleTypeDef *hUART) {
-	hUART->Instance = DISCOVERY_COM1;
-	hUART->Init.BaudRate = 9600;
-	hUART->Init.WordLength = UART_WORDLENGTH_8B;
-	hUART->Init.StopBits = UART_STOPBITS_1;
-	hUART->Init.Parity = UART_PARITY_NONE;
-	hUART->Init.Mode = UART_MODE_TX_RX;
-	hUART->Init.HwFlowCtl = UART_HWCONTROL_NONE;
+static void UART_init() {
+	hUART.Instance = DISCOVERY_COM1;
+	hUART.Init.BaudRate = 9600;
+	hUART.Init.WordLength = UART_WORDLENGTH_8B;
+	hUART.Init.StopBits = UART_STOPBITS_1;
+	hUART.Init.Parity = UART_PARITY_NONE;
+	hUART.Init.Mode = UART_MODE_TX_RX;
+	hUART.Init.HwFlowCtl = UART_HWCONTROL_NONE;
 
-	HAL_UART_Init(hUART);
+	HAL_UART_Init(&hUART);
 }
 
 /******************/
 /*** UART_write ***/
 /******************/
-static void UART_write(UART_HandleTypeDef *hUART, const char *msg) {
-	HAL_UART_Transmit(hUART, (uint8_t *)msg, strlen(msg), TIMEOUT);
+static void UART_write(const char *msg) {
+	HAL_UART_Transmit(&hUART, (uint8_t *)msg, strlen(msg), TIMEOUT);
 }
 
 /*****************/
 /*** UART_read ***/
 /*****************/
-static unsigned int UART_read(UART_HandleTypeDef *hUART, char *buffer, unsigned int size) {
+static unsigned int UART_read(char *buffer, unsigned int size) {
 	unsigned int num_chars;
 	char c;
 
 	for (num_chars = 0; num_chars < size - 1; ) {
-		if (HAL_UART_Receive(hUART, (uint8_t *)&c, 1, TIMEOUT) == HAL_OK) {
-			HAL_UART_Transmit(hUART, (uint8_t *)&c, 1, TIMEOUT);
+		if (HAL_UART_Receive(&hUART, (uint8_t *)&c, 1, TIMEOUT) == HAL_OK) {
+			HAL_UART_Transmit(&hUART, (uint8_t *)&c, 1, TIMEOUT);
 
 			if (c == '\r') {
 				break;
@@ -97,8 +99,7 @@ static unsigned int UART_read(UART_HandleTypeDef *hUART, char *buffer, unsigned 
 /*** Main ***/
 /************/
 int main() {
-	UART_HandleTypeDef hUART;
-	char buffer[BUFFER_SIZE];
+	static char buffer[BUFFER_SIZE];
 
 	/*** Init HAL library ***/
 	HAL_Init();
@@ -109,14 +110,14 @@ int main() {
 	/*** Do forever ***/
 	for(;;) {
 		/* Send message */
-		UART_write(&hUART, "Please enter your name: ");
+		UART_write("Please enter your name: ");
 
 		/* Read name */
-		if (UART_read(&hUART, buffer, BUFFER_SIZE)) {
+		if (UART_read(buffer, BUFFER_SIZE)) {
 			/* Write welcome message */
-			UART_write(&hUART, "\r\nHello ");
-			UART_write(&hUART, buffer);
-			UART_write(&hUART, " !\r\n");
+			UART_write("\r\nHello ");
+			UART_write(buffer);
+			UART_write(" !\r\n");
 		}
 	}
 }
