@@ -6,4 +6,7 @@ The examples have been developped using AC6 System Workbench (see http://www.ope
 
 The following examples are provided:
   - STM32F7_led_blink: This example shows how to make the green led blink
-  - STM32F7_UART_test: This example shows how to configure and use the UART
+  - STM32F7_UART_test: This example shows how to configure and use the UART. It asks for a name and then display a welcome
+  						message on the serial console (using the virtual COM port through the STLink USB port).
+  - STM32F7_ADC_test: This example shows how to use the ADC. It outputs the voltage of the A0 Arduino connector pin
+  						to the serial console (using the virtual COM port through the STLink USB port).
